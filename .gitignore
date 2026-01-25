@@ -50,5 +50,3 @@ Thumbs.db
 # Logs
 logs
 *.log
-# DevContainer override files
-.devcontainer/docker-compose.override.yml
