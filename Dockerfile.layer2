@@ -1,0 +1,86 @@
+# Layer 2: .NET Bench Image
+# Extends Layer 1 (devbench-base) with .NET-specific tools
+# Includes: .NET SDK 10, ASP.NET Core, .NET global tools
+
+ARG BASE_IMAGE=devbench-base:brett
+FROM ${BASE_IMAGE}
+
+# Container version labels
+LABEL layer="2"
+LABEL layer.name="dotnet-bench"
+LABEL layer.version="1.0.0"
+LABEL layer.description=".NET development tools and SDK"
+LABEL bench.type="dotnet"
+
+ARG USERNAME=brett
+
+# Switch to root for .NET installation
+USER root
+
+# ========================================
+# .NET SDK AND RUNTIMES
+# ========================================
+
+# Add Microsoft repository for .NET (if not already added in base)
+RUN wget https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
+    && dpkg -i packages-microsoft-prod.deb \
+    && rm packages-microsoft-prod.deb
+
+# Install .NET 10 SDK and runtimes
+RUN apt-get update && apt-get install -y \
+    dotnet-sdk-10.0 \
+    dotnet-runtime-10.0 \
+    aspnetcore-runtime-10.0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# ========================================
+# .NET GLOBAL TOOLS
+# ========================================
+
+# Install .NET global tools (gracefully handle failures)
+RUN dotnet tool install --global dotnet-ef || echo "⚠️  dotnet-ef failed, skipping" \
+    && (dotnet tool install --global dotnet-aspnet-codegenerator || echo "⚠️  dotnet-aspnet-codegenerator failed, skipping") \
+    && (dotnet tool install --global Microsoft.Web.LibraryManager.Cli || echo "⚠️  Microsoft.Web.LibraryManager.Cli failed, skipping") \
+    && (dotnet tool install --global dotnet-reportgenerator-globaltool || echo "⚠️  dotnet-reportgenerator-globaltool failed, skipping") \
+    && (dotnet tool install --global dotnet-stryker || echo "⚠️  dotnet-stryker failed, skipping") \
+    && (dotnet tool install --global dotnet-outdated-tool || echo "⚠️  dotnet-outdated-tool failed, skipping") \
+    && (dotnet tool install --global GitVersion.Tool || echo "⚠️  GitVersion.Tool failed, skipping") \
+    && (dotnet tool install --global Microsoft.Tye --version "0.11.0-alpha.22111.1" || echo "⚠️  Microsoft.Tye failed, skipping") \
+    && (dotnet tool install --global dotnet-format || echo "⚠️  dotnet-format failed, skipping") \
+    && (dotnet tool install --global dotnet-trace || echo "⚠️  dotnet-trace failed, skipping") \
+    && (dotnet tool install --global dotnet-dump || echo "⚠️  dotnet-dump failed, skipping") \
+    && (dotnet tool install --global dotnet-counters || echo "⚠️  dotnet-counters failed, skipping") \
+    && (dotnet tool install --global Microsoft.dotnet-httprepl || echo "⚠️  Microsoft.dotnet-httprepl failed, skipping") \
+    && (dotnet tool install --global Swashbuckle.AspNetCore.Cli || echo "⚠️  Swashbuckle.AspNetCore.Cli failed, skipping") \
+    && (dotnet tool install --global dotnet-sonarscanner || echo "⚠️  dotnet-sonarscanner failed, skipping") \
+    && (dotnet tool install --global coverlet.console || echo "⚠️  coverlet.console failed, skipping") \
+    && (dotnet tool install --global Microsoft.Playwright.CLI || echo "⚠️  Microsoft.Playwright.CLI failed, skipping") \
+    && (dotnet tool install --global dotnet-script || echo "⚠️  dotnet-script failed, skipping") \
+    && (dotnet tool install --global dotnet-depends || echo "⚠️  dotnet-depends failed, skipping") \
+    && (dotnet tool install --global dotnet-retire || echo "⚠️  dotnet-retire failed, skipping") \
+    && (dotnet tool install --global SpecFlow.Plus.LivingDoc.CLI || echo "⚠️  SpecFlow.Plus.LivingDoc.CLI failed, skipping")
+
+# ========================================
+# USER CONFIGURATION
+# ========================================
+
+USER $USERNAME
+WORKDIR /workspace
+
+# Add .NET tools to PATH
+ENV PATH="/root/.dotnet/tools:${PATH}"
+
+# Add .NET diagnostic aliases to zshrc
+RUN echo '' >> ~/.zshrc && \
+    echo '# .NET aliases' >> ~/.zshrc && \
+    echo 'alias dn="dotnet"' >> ~/.zshrc && \
+    echo 'alias dnr="dotnet run"' >> ~/.zshrc && \
+    echo 'alias dnb="dotnet build"' >> ~/.zshrc && \
+    echo 'alias dnt="dotnet test"' >> ~/.zshrc && \
+    echo 'alias dnw="dotnet watch"' >> ~/.zshrc && \
+    echo 'alias dnc="dotnet clean"' >> ~/.zshrc && \
+    echo 'alias dnp="dotnet publish"' >> ~/.zshrc && \
+    echo 'alias dnef="dotnet ef"' >> ~/.zshrc
+
+# Default command
+CMD ["sleep", "infinity"]

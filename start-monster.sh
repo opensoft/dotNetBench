@@ -8,6 +8,20 @@ export USER=$(whoami)
 echo "🚀 Starting the .NET DevBench Monster Container"
 echo "   User: $USER (UID: $USER_UID, GID: $USER_GID)"
 
+# Check if the dotnet-bench image exists
+if ! docker image inspect "dotnet-bench:$USER" >/dev/null 2>&1; then
+    echo ""
+    echo "❌ Error: Docker image 'dotnet-bench:$USER' not found!"
+    echo ""
+    echo "You need to build the .NET bench image first:"
+    echo "  ./build-layer.sh"
+    echo ""
+    echo "This will:"
+    echo "  1. Check that devbench-base:$USER exists (build ../base-image if needed)"
+    echo "  2. Build the .NET-specific layer on top of it"
+    exit 1
+fi
+
 # Validate we have the required info
 if [ -z "$USER" ] || [ -z "$USER_UID" ] || [ -z "$USER_GID" ]; then
     echo "❌ Error: Could not determine user info"
@@ -15,10 +29,10 @@ if [ -z "$USER" ] || [ -z "$USER_UID" ] || [ -z "$USER_GID" ]; then
     exit 1
 fi
 
-echo "🔧 Building container with user mapping..."
+echo "🔧 Starting container with user mapping..."
 
-# Start the container with proper user mapping
-docker-compose -f .devcontainer/docker-compose.yml up -d --build
+# Start the container with proper user mapping (no --build since using pre-built image)
+docker-compose -f .devcontainer/docker-compose.yml up -d
 
 if [ $? -eq 0 ]; then
     echo "✅ Container started successfully!"

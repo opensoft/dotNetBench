@@ -4,15 +4,7 @@ name: dev-bench
 
 services:
   dot_net_bench:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        USERNAME: ${USER}
-        USER_UID: ${USER_UID:-1000}
-        USER_GID: ${USER_GID:-1000}
-        DEBUG: false
-    
+    image: dotnet-bench:${USER:-brett}
     container_name: dotnet_bench
     
     # Mount your workspace
