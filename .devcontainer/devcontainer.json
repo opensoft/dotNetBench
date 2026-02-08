@@ -2,8 +2,8 @@
 	"name": ".NET DevBench Container - The Monster",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "dot_net_bench",
-	// Workspace folder - reads from WORKING_DIR env var (set in ../.env), defaults to /workspace
-	"workspaceFolder": "${localEnv:WORKING_DIR:/workspace}",
+	// Workspace folder - uses working_dir from docker-compose.yml (set via WORKING_DIR in ../.env)
+	"workspaceFolder": "/workspace/projects",
 	
 	// Mount host home directory directly for seamless config/SSH access
 	"mounts": [
