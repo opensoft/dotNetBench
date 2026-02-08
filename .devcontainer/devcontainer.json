@@ -70,6 +70,9 @@
 
 	// All setup is done in the Dockerfile
 
+	// Automatically open /projects folder after attaching
+	"postAttachCommand": "code /projects",
+
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root
 	"remoteUser": "${localEnv:USER}"
 }
