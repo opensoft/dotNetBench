@@ -19,8 +19,8 @@ This is the **ultimate .NET development container** - a massive, comprehensive U
 ## �️ **THE MONSTER INCLUDES**
 
 ### **Core Development Stack**
-- **.NET 8.0 SDK** with ALL workloads (Blazor, MAUI, Android, iOS, etc.)
-- **25+ .NET Global Tools** (EF Core, testing, profiling, code analysis)
+- **.NET 10.0 SDK** (Latest LTS) with ASP.NET Core runtime
+- **20+ .NET Global Tools** (EF Core, testing, profiling, code analysis)
 - **Docker & Docker Compose** 
 - **Kubernetes** (kubectl, helm, tilt)
 - **Multiple Language Runtimes**:
@@ -58,21 +58,59 @@ This is the **ultimate .NET development container** - a massive, comprehensive U
 
 ## 🚀 **Getting Started**
 
+### **Prerequisites**
+1. Build Layer 1 (devbench-base) if not already built:
+   ```bash
+   cd ../base-image
+   ./build.sh
+   ```
+
+2. Build Layer 2 (dotnet-bench):
+   ```bash
+   ./scripts/build-layer.sh
+   ```
+
 ### **Option 1: VS Code (Recommended)**
 1. Open this folder in VS Code
 2. When prompted, click **"Reopen in Container"**
-3. ☕ Grab coffee (first build takes 10-15 minutes)
-4. 🎉 Start coding in your monster environment!
+3. VS Code will automatically open the `/projects` folder (your ~/projects directory)
+4. 🎉 Start coding!
 
-### **Option 2: Manual Docker Compose**
+### **Option 2: Manual Start**
 ```bash
-# Run the helper script to get your UID/GID
-./start-monster.sh
+# Start the container
+./setup.sh
 
-# Or manually with docker-compose
-export UID=$(id -u) GID=$(id -g) USER=$(whoami)
-docker-compose -f .devcontainer/docker-compose.yml up -d --build
+# Connect to it
+docker exec -it dotnet_bench zsh
 ```
+
+## 📁 **Working Directory Configuration**
+
+The container automatically mounts and opens your projects folder:
+
+- **Host**: `~/projects` 
+- **Container**: `/projects`
+- **VS Code**: Automatically opens `/projects` on attach
+
+### **Changing the Default Folder**
+
+To work on a specific project by default, update both:
+
+1. **`.env` file**:
+   ```bash
+   WORKING_DIR=/projects/YourProjectName
+   ```
+
+2. **`.devcontainer/devcontainer.json`**:
+   ```json
+   "workspaceFolder": "/projects/YourProjectName",
+   "postAttachCommand": "code /projects/YourProjectName"
+   ```
+
+### **Available Folders**
+- `/projects` - Your actual project files (~/projects)
+- `/workspace` - The workBenches configuration (devBenches/)
 
 ## 📦 **What Gets Installed**
 
@@ -94,7 +132,7 @@ PowerShell                  # Cross-platform PS
 
 ### **Language Runtimes & Package Managers**
 ```bash
-.NET 8.0 SDK               # Latest .NET
+.NET 10.0 SDK              # Latest LTS .NET
 Node.js 20.x + npm         # JavaScript ecosystem  
 Python 3.12 + pip          # Python development
 Java 21/17/11 JDKs         # Multi-Java support
