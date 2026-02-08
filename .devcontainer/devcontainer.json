@@ -5,13 +5,8 @@
 	// Workspace folder - points to ~/projects mounted at /projects
 	"workspaceFolder": "/projects",
 	
-	// Mount host home directory directly for seamless config/SSH access
-	"mounts": [
-		// Current workspace (already in docker-compose.yml but good to be explicit)
-		"source=${localWorkspaceFolder}/..,target=/workspace,type=bind,consistency=cached",
-		// Host home directory mounted directly - gives access to SSH, configs, dotfiles
-		"source=${localEnv:HOME},target=/home/${localEnv:USER},type=bind,consistency=cached"
-	],
+	// Mounts are defined in docker-compose.yml
+	// (~/projects -> /projects, devBenches -> /workspace, home dir, etc.)
 	
 	// Container environment variables
 	"containerEnv": {
