@@ -6,6 +6,8 @@ services:
   dot_net_bench:
     image: dotnet-bench:${USER:-brett}
     container_name: dotnet_bench
+    env_file:
+      - ../.env
     
     # Mount your workspace
     volumes:
