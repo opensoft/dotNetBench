@@ -92,9 +92,9 @@ RUN apt-get update && apt-get install -y \
 
 # Phase 2b: .NET SDK and runtime
 RUN apt-get update && apt-get install -y \
-    dotnet-sdk-8.0 \
-    dotnet-runtime-8.0 \
-    aspnetcore-runtime-8.0 \
+    dotnet-sdk-10.0 \
+    dotnet-runtime-10.0 \
+    aspnetcore-runtime-10.0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Phase 2c: Node.js from NodeSource (includes npm)
