@@ -516,28 +516,28 @@ RUN npm install -g \
 # PHASE 6: .NET TOOL EXTRAVAGANZA
 # ========================================
 
-# Install ALL the .NET global tools (21/24 working - 3 fail due to invalid packages)
-RUN dotnet tool install --global dotnet-ef \
-    && dotnet tool install --global dotnet-aspnet-codegenerator \
-    && dotnet tool install --global Microsoft.Web.LibraryManager.Cli \
-    && dotnet tool install --global dotnet-reportgenerator-globaltool \
-    && dotnet tool install --global dotnet-stryker \
-    && dotnet tool install --global dotnet-outdated-tool \
-    && dotnet tool install --global GitVersion.Tool \
-    && dotnet tool install --global Microsoft.Tye --version "0.11.0-alpha.22111.1" \
-    && dotnet tool install --global dotnet-format \
-    && dotnet tool install --global dotnet-trace \
-    && dotnet tool install --global dotnet-dump \
-    && dotnet tool install --global dotnet-counters \
-    && dotnet tool install --global Microsoft.dotnet-httprepl \
-    && dotnet tool install --global Swashbuckle.AspNetCore.Cli \
-    && dotnet tool install --global dotnet-sonarscanner \
-    && dotnet tool install --global coverlet.console \
-    && dotnet tool install --global Microsoft.Playwright.CLI \
-    && dotnet tool install --global dotnet-script \
-    && dotnet tool install --global dotnet-depends \
-    && dotnet tool install --global dotnet-retire \
-    && dotnet tool install --global SpecFlow.Plus.LivingDoc.CLI
+# Install ALL the .NET global tools (gracefully handle failures)
+RUN dotnet tool install --global dotnet-ef || echo "⚠️  dotnet-ef failed, skipping" \
+    && (dotnet tool install --global dotnet-aspnet-codegenerator || echo "⚠️  dotnet-aspnet-codegenerator failed, skipping") \
+    && (dotnet tool install --global Microsoft.Web.LibraryManager.Cli || echo "⚠️  Microsoft.Web.LibraryManager.Cli failed, skipping") \
+    && (dotnet tool install --global dotnet-reportgenerator-globaltool || echo "⚠️  dotnet-reportgenerator-globaltool failed, skipping") \
+    && (dotnet tool install --global dotnet-stryker || echo "⚠️  dotnet-stryker failed, skipping") \
+    && (dotnet tool install --global dotnet-outdated-tool || echo "⚠️  dotnet-outdated-tool failed, skipping") \
+    && (dotnet tool install --global GitVersion.Tool || echo "⚠️  GitVersion.Tool failed, skipping") \
+    && (dotnet tool install --global Microsoft.Tye --version "0.11.0-alpha.22111.1" || echo "⚠️  Microsoft.Tye failed, skipping") \
+    && (dotnet tool install --global dotnet-format || echo "⚠️  dotnet-format failed, skipping") \
+    && (dotnet tool install --global dotnet-trace || echo "⚠️  dotnet-trace failed, skipping") \
+    && (dotnet tool install --global dotnet-dump || echo "⚠️  dotnet-dump failed, skipping") \
+    && (dotnet tool install --global dotnet-counters || echo "⚠️  dotnet-counters failed, skipping") \
+    && (dotnet tool install --global Microsoft.dotnet-httprepl || echo "⚠️  Microsoft.dotnet-httprepl failed, skipping") \
+    && (dotnet tool install --global Swashbuckle.AspNetCore.Cli || echo "⚠️  Swashbuckle.AspNetCore.Cli failed, skipping") \
+    && (dotnet tool install --global dotnet-sonarscanner || echo "⚠️  dotnet-sonarscanner failed, skipping") \
+    && (dotnet tool install --global coverlet.console || echo "⚠️  coverlet.console failed, skipping") \
+    && (dotnet tool install --global Microsoft.Playwright.CLI || echo "⚠️  Microsoft.Playwright.CLI failed, skipping") \
+    && (dotnet tool install --global dotnet-script || echo "⚠️  dotnet-script failed, skipping") \
+    && (dotnet tool install --global dotnet-depends || echo "⚠️  dotnet-depends failed, skipping") \
+    && (dotnet tool install --global dotnet-retire || echo "⚠️  dotnet-retire failed, skipping") \
+    && (dotnet tool install --global SpecFlow.Plus.LivingDoc.CLI || echo "⚠️  SpecFlow.Plus.LivingDoc.CLI failed, skipping")
 
 # FAILED .NET TOOLS (commented out - these cause container build to fail)
 # The following tools have invalid package settings and cannot be installed:

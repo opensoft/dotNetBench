@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # Get current user info
-export UID=$(id -u)
-export GID=$(id -g) 
+export USER_UID=$(id -u)
+export USER_GID=$(id -g) 
 export USER=$(whoami)
 
 echo "🚀 Starting the .NET DevBench Monster Container"
-echo "   User: $USER (UID: $UID, GID: $GID)"
+echo "   User: $USER (UID: $USER_UID, GID: $USER_GID)"
 
 # Validate we have the required info
-if [ -z "$USER" ] || [ -z "$UID" ] || [ -z "$GID" ]; then
+if [ -z "$USER" ] || [ -z "$USER_UID" ] || [ -z "$USER_GID" ]; then
     echo "❌ Error: Could not determine user info"
-    echo "   USER=$USER, UID=$UID, GID=$GID"
+    echo "   USER=$USER, UID=$USER_UID, GID=$USER_GID"
     exit 1
 fi
 

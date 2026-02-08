@@ -1,6 +1,8 @@
 #!/bin/bash
 
-DEVBENCH_DIR="/home/brett/projects/DevBench/dotNetBench"
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DEVBENCH_DIR="$SCRIPT_DIR"
 CONTAINER_NAME="dot_net_bench"
 
 cd "$DEVBENCH_DIR"
