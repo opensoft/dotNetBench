@@ -12,6 +12,7 @@ services:
     # Mount your workspace
     volumes:
       - ../:/workspace:cached
+      - ~/projects:/projects:cached
       - /var/run/docker.sock:/var/run/docker.sock
       - ~/.gitconfig:/home/${USER}/.gitconfig:ro
       - ~/.ssh:/home/${USER}/.ssh:ro
