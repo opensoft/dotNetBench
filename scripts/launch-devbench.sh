@@ -2,7 +2,8 @@
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-DEVBENCH_DIR="$SCRIPT_DIR"
+# Go to parent directory (dotNetBench root)
+DEVBENCH_DIR="$SCRIPT_DIR/.."
 CONTAINER_NAME="dot_net_bench"
 
 cd "$DEVBENCH_DIR"
@@ -14,7 +15,7 @@ if docker ps --format "table {{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
     echo "✅ Container is already running, connecting..."
 else
     echo "🔧 Container not running, starting it first..."
-    ./start-monster.sh
+    ./setup.sh
     
     # Wait a moment for container to fully start
     sleep 3

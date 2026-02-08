@@ -14,7 +14,7 @@ if ! docker image inspect "dotnet-bench:$USER" >/dev/null 2>&1; then
     echo "❌ Error: Docker image 'dotnet-bench:$USER' not found!"
     echo ""
     echo "You need to build the .NET bench image first:"
-    echo "  ./build-layer.sh"
+    echo "  ./scripts/build-layer.sh"
     echo ""
     echo "This will:"
     echo "  1. Check that devbench-base:$USER exists (build ../base-image if needed)"

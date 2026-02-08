@@ -10,7 +10,8 @@ echo "=========================================="
 echo ""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+# Go to parent directory where Dockerfile.layer2 is located
+cd "$SCRIPT_DIR/.."
 
 # Parse arguments
 USERNAME=${1:-$(whoami)}
