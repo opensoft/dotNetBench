@@ -1,28 +1,31 @@
 # Layer 2: .NET Bench Image
 # Extends Layer 1 (devbench-base) with .NET-specific tools
-# Includes: .NET SDK 10, ASP.NET Core, .NET global tools
+# Includes: .NET SDK 10, ASP.NET Core, .NET global tools, cloud CLIs,
+#           database clients, PowerShell, diagnostics, workloads
+# USER-AGNOSTIC: No user creation — Layer 3 handles user setup
 
-ARG BASE_IMAGE=devbench-base:brett
-FROM ${BASE_IMAGE}
+FROM devbench-base:latest
 
 # Container version labels
 LABEL layer="2"
 LABEL layer.name="dotnet-bench"
-LABEL layer.version="1.0.0"
-LABEL layer.description=".NET development tools and SDK"
+LABEL layer.version="2.0.0"
+LABEL layer.updated="2026-03-06"
+LABEL layer.description=".NET development tools and SDK (user-agnostic)"
 LABEL bench.type="dotnet"
 
-ARG USERNAME=brett
-
-# Switch to root for .NET installation
 USER root
+
+# Shared tool install path — accessible to any Layer 3 user
+ENV DOTNET_TOOLS_PATH=/usr/local/share/dotnet-tools
+RUN mkdir -p $DOTNET_TOOLS_PATH
 
 # ========================================
 # .NET SDK AND RUNTIMES
 # ========================================
 
-# Add Microsoft repository for .NET (if not already added in base)
-RUN wget https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
+# Add Microsoft repository for .NET and other MS packages
+RUN wget -q https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
     && dpkg -i packages-microsoft-prod.deb \
     && rm packages-microsoft-prod.deb
 
@@ -37,50 +40,181 @@ RUN apt-get update && apt-get install -y \
 # .NET GLOBAL TOOLS
 # ========================================
 
-# Install .NET global tools (gracefully handle failures)
-RUN dotnet tool install --global dotnet-ef || echo "⚠️  dotnet-ef failed, skipping" \
-    && (dotnet tool install --global dotnet-aspnet-codegenerator || echo "⚠️  dotnet-aspnet-codegenerator failed, skipping") \
-    && (dotnet tool install --global Microsoft.Web.LibraryManager.Cli || echo "⚠️  Microsoft.Web.LibraryManager.Cli failed, skipping") \
-    && (dotnet tool install --global dotnet-reportgenerator-globaltool || echo "⚠️  dotnet-reportgenerator-globaltool failed, skipping") \
-    && (dotnet tool install --global dotnet-stryker || echo "⚠️  dotnet-stryker failed, skipping") \
-    && (dotnet tool install --global dotnet-outdated-tool || echo "⚠️  dotnet-outdated-tool failed, skipping") \
-    && (dotnet tool install --global GitVersion.Tool || echo "⚠️  GitVersion.Tool failed, skipping") \
-    && (dotnet tool install --global Microsoft.Tye --version "0.11.0-alpha.22111.1" || echo "⚠️  Microsoft.Tye failed, skipping") \
-    && (dotnet tool install --global dotnet-format || echo "⚠️  dotnet-format failed, skipping") \
-    && (dotnet tool install --global dotnet-trace || echo "⚠️  dotnet-trace failed, skipping") \
-    && (dotnet tool install --global dotnet-dump || echo "⚠️  dotnet-dump failed, skipping") \
-    && (dotnet tool install --global dotnet-counters || echo "⚠️  dotnet-counters failed, skipping") \
-    && (dotnet tool install --global Microsoft.dotnet-httprepl || echo "⚠️  Microsoft.dotnet-httprepl failed, skipping") \
-    && (dotnet tool install --global Swashbuckle.AspNetCore.Cli || echo "⚠️  Swashbuckle.AspNetCore.Cli failed, skipping") \
-    && (dotnet tool install --global dotnet-sonarscanner || echo "⚠️  dotnet-sonarscanner failed, skipping") \
-    && (dotnet tool install --global coverlet.console || echo "⚠️  coverlet.console failed, skipping") \
-    && (dotnet tool install --global Microsoft.Playwright.CLI || echo "⚠️  Microsoft.Playwright.CLI failed, skipping") \
-    && (dotnet tool install --global dotnet-script || echo "⚠️  dotnet-script failed, skipping") \
-    && (dotnet tool install --global dotnet-depends || echo "⚠️  dotnet-depends failed, skipping") \
-    && (dotnet tool install --global dotnet-retire || echo "⚠️  dotnet-retire failed, skipping") \
-    && (dotnet tool install --global SpecFlow.Plus.LivingDoc.CLI || echo "⚠️  SpecFlow.Plus.LivingDoc.CLI failed, skipping")
+# Install to shared path so any user (Layer 3) can run them
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-ef \
+    || echo "⚠️  dotnet-ef failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-aspnet-codegenerator \
+    || echo "⚠️  dotnet-aspnet-codegenerator failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH Microsoft.Web.LibraryManager.Cli \
+    || echo "⚠️  libman failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-reportgenerator-globaltool \
+    || echo "⚠️  reportgenerator failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-stryker \
+    || echo "⚠️  dotnet-stryker failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-outdated-tool \
+    || echo "⚠️  dotnet-outdated failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH GitVersion.Tool \
+    || echo "⚠️  GitVersion failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-format \
+    || echo "⚠️  dotnet-format failed, skipping"
+
+# Diagnostics tools
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-trace \
+    || echo "⚠️  dotnet-trace failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-dump \
+    || echo "⚠️  dotnet-dump failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-counters \
+    || echo "⚠️  dotnet-counters failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-monitor \
+    || echo "⚠️  dotnet-monitor failed, skipping"
+
+# API / Web tooling
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH Microsoft.dotnet-httprepl \
+    || echo "⚠️  httprepl failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH Swashbuckle.AspNetCore.Cli \
+    || echo "⚠️  swashbuckle failed, skipping"
+
+# Code quality / coverage
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-sonarscanner \
+    || echo "⚠️  sonarscanner failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH coverlet.console \
+    || echo "⚠️  coverlet failed, skipping"
+
+# Scripting and analysis
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-script \
+    || echo "⚠️  dotnet-script failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-depends \
+    || echo "⚠️  dotnet-depends failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-retire \
+    || echo "⚠️  dotnet-retire failed, skipping"
+
+# Make shared tool dir accessible to all users
+RUN chmod -R a+rX $DOTNET_TOOLS_PATH
 
 # ========================================
-# USER CONFIGURATION
+# .NET WORKLOADS
 # ========================================
 
-USER $USERNAME
-WORKDIR /workspace
+RUN dotnet workload install aspire \
+    || echo "⚠️  aspire workload failed, skipping"
+RUN dotnet workload install wasm-tools \
+    || echo "⚠️  wasm-tools workload failed, skipping"
 
-# Add .NET tools to PATH
-ENV PATH="/root/.dotnet/tools:${PATH}"
+# ========================================
+# POWERSHELL
+# ========================================
 
-# Add .NET diagnostic aliases to zshrc
-RUN echo '' >> ~/.zshrc && \
-    echo '# .NET aliases' >> ~/.zshrc && \
-    echo 'alias dn="dotnet"' >> ~/.zshrc && \
-    echo 'alias dnr="dotnet run"' >> ~/.zshrc && \
-    echo 'alias dnb="dotnet build"' >> ~/.zshrc && \
-    echo 'alias dnt="dotnet test"' >> ~/.zshrc && \
-    echo 'alias dnw="dotnet watch"' >> ~/.zshrc && \
-    echo 'alias dnc="dotnet clean"' >> ~/.zshrc && \
-    echo 'alias dnp="dotnet publish"' >> ~/.zshrc && \
-    echo 'alias dnef="dotnet ef"' >> ~/.zshrc
+RUN apt-get update && apt-get install -y \
+    powershell \
+    && rm -rf /var/lib/apt/lists/*
+
+# ========================================
+# CLOUD CLIs
+# ========================================
+
+# Azure CLI (includes Bicep)
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+# AWS CLI v2
+RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip \
+    && unzip -q /tmp/awscliv2.zip -d /tmp \
+    && /tmp/aws/install \
+    && rm -rf /tmp/aws /tmp/awscliv2.zip
+
+# Docker CLI (client only — daemon runs on host via socket mount)
+RUN apt-get update && apt-get install -y \
+    ca-certificates gnupg lsb-release \
+    && install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+    && chmod a+r /etc/apt/keyrings/docker.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+       > /etc/apt/sources.list.d/docker.list \
+    && apt-get update && apt-get install -y docker-ce-cli docker-compose-plugin \
+    && rm -rf /var/lib/apt/lists/*
+
+# kubectl
+RUN curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key \
+       | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /" \
+       > /etc/apt/sources.list.d/kubernetes.list \
+    && apt-get update && apt-get install -y kubectl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Helm 3
+RUN curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+# ========================================
+# DATABASE CLIENTS
+# ========================================
+
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    default-mysql-client \
+    sqlite3 \
+    redis-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# MSSQL tools (sqlcmd) — Microsoft repo already added above
+RUN ACCEPT_EULA=Y apt-get update && ACCEPT_EULA=Y apt-get install -y \
+    mssql-tools18 \
+    unixodbc-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# ========================================
+# SYSTEM UTILITIES
+# ========================================
+
+RUN apt-get update && apt-get install -y \
+    htop \
+    tree \
+    less \
+    && rm -rf /var/lib/apt/lists/*
+
+# ========================================
+# PATH AND ENVIRONMENT
+# ========================================
+
+ENV PATH="/usr/local/share/dotnet-tools:/opt/mssql-tools18/bin:${PATH}"
+
+# ========================================
+# SHELL CONFIGURATION (into /etc/skel)
+# ========================================
+
+# .NET aliases
+RUN echo '' >> /etc/skel/.zshrc && \
+    echo '# .NET Development aliases' >> /etc/skel/.zshrc && \
+    echo 'alias dn="dotnet"' >> /etc/skel/.zshrc && \
+    echo 'alias dnr="dotnet run"' >> /etc/skel/.zshrc && \
+    echo 'alias dnb="dotnet build"' >> /etc/skel/.zshrc && \
+    echo 'alias dnt="dotnet test"' >> /etc/skel/.zshrc && \
+    echo 'alias dnw="dotnet watch"' >> /etc/skel/.zshrc && \
+    echo 'alias dnc="dotnet clean"' >> /etc/skel/.zshrc && \
+    echo 'alias dnp="dotnet publish"' >> /etc/skel/.zshrc && \
+    echo 'alias dnef="dotnet ef"' >> /etc/skel/.zshrc && \
+    echo 'alias dna="dotnet add"' >> /etc/skel/.zshrc && \
+    echo 'alias dnrs="dotnet restore"' >> /etc/skel/.zshrc && \
+    echo 'alias dnnew="dotnet new"' >> /etc/skel/.zshrc
+
+# Docker aliases
+RUN echo '' >> /etc/skel/.zshrc && \
+    echo '# Docker aliases' >> /etc/skel/.zshrc && \
+    echo 'alias d="docker"' >> /etc/skel/.zshrc && \
+    echo 'alias dc="docker compose"' >> /etc/skel/.zshrc && \
+    echo 'alias dps="docker ps"' >> /etc/skel/.zshrc && \
+    echo 'alias di="docker images"' >> /etc/skel/.zshrc
+
+# Kubernetes aliases
+RUN echo '' >> /etc/skel/.zshrc && \
+    echo '# Kubernetes aliases' >> /etc/skel/.zshrc && \
+    echo 'alias k="kubectl"' >> /etc/skel/.zshrc && \
+    echo 'alias kgp="kubectl get pods"' >> /etc/skel/.zshrc && \
+    echo 'alias kgs="kubectl get services"' >> /etc/skel/.zshrc && \
+    echo 'alias kgd="kubectl get deployments"' >> /etc/skel/.zshrc
+
+# MSSQL tools PATH
+RUN echo '' >> /etc/skel/.zshrc && \
+    echo '# MSSQL tools' >> /etc/skel/.zshrc && \
+    echo 'export PATH="/opt/mssql-tools18/bin:\$PATH"' >> /etc/skel/.zshrc
 
 # Default command
 CMD ["sleep", "infinity"]

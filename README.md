@@ -1,234 +1,106 @@
-# 🚀 THE BIG HEAVY FULL LOADED DEVTOOL MONSTER
+# dotNetBench — .NET Development Bench
 
-## Ubuntu 24.04 .NET Development Container with Perfect UID/GID Matching
+Full-featured .NET development container using the workBenches layered image system.
 
-This is the **ultimate .NET development container** - a massive, comprehensive Ubuntu 24.04-based devcontainer that includes **EVERYTHING** you could possibly need for modern .NET development, with perfect user ID matching to your host system.
+## Layer Architecture
 
-## 🎯 **Key Features**
+```
+Layer 0: workbench-base:latest     — Ubuntu 24.04, system tools, AI CLIs
+Layer 1: devbench-base:latest      — Python, Node.js, dev tools
+Layer 2: dotnet-bench:latest       — .NET SDK, cloud CLIs, DB clients (this image)
+Layer 3: dotnet-bench:{username}   — User account (built automatically)
+Runtime: devcontainer.json mounts  — Credentials, shell config, AI auth
+```
 
-### ✅ **Perfect User Management**
-- **UID/GID matching** with your host system (crucial for WSL file permissions)
-- No more permission issues with files created in the container
-- Proper sudo access without password prompts
+## What Layer 2 Installs (v2.0.0)
 
-### 🏗️ **Based on Ubuntu 24.04**
-- Latest Ubuntu LTS with all the newest packages
-- Built from scratch as a custom Dockerfile (not a pre-built image)
-- Full control over every component
+### .NET SDK & Runtimes
+- .NET 10 SDK, runtime, ASP.NET Core runtime
+- Workloads: **Aspire**, **wasm-tools** (Blazor WASM AOT)
 
-## �️ **THE MONSTER INCLUDES**
+### .NET Global Tools (18+)
+- **EF Core**: dotnet-ef
+- **Diagnostics**: dotnet-trace, dotnet-dump, dotnet-counters, dotnet-monitor
+- **Code quality**: dotnet-sonarscanner, coverlet, dotnet-stryker, dotnet-format
+- **Scaffolding**: dotnet-aspnet-codegenerator, libman
+- **Utilities**: dotnet-outdated, dotnet-retire, dotnet-depends, dotnet-script
+- **Web**: httprepl, Swashbuckle CLI
+- **Versioning**: GitVersion, ReportGenerator
 
-### **Core Development Stack**
-- **.NET 10.0 SDK** (Latest LTS) with ASP.NET Core runtime
-- **20+ .NET Global Tools** (EF Core, testing, profiling, code analysis)
-- **Docker & Docker Compose** 
-- **Kubernetes** (kubectl, helm, tilt)
-- **Multiple Language Runtimes**:
-  - Node.js 20.x + npm + bun + deno
-  - Python 3.12 + pip + JupyterLab
-  - Java 21, 17, 11 JDKs
-  - Go language
-  - Rust + Cargo
+### Cloud CLIs
+- **Azure CLI** (includes Bicep)
+- **AWS CLI v2**
+- **Docker CLI** + Docker Compose (client only — host socket mount)
+- **kubectl** (Kubernetes 1.32)
+- **Helm 3**
 
-### **Cloud & Infrastructure Tools**
-- **Azure CLI** with Bicep
-- **Terraform** + **Pulumi** 
-- **Dapr CLI** for microservices
-- **PowerShell** cross-platform
+### Database Clients
+- PostgreSQL (`psql`)
+- MySQL (`mysql`)
+- SQLite (`sqlite3`)
+- Redis (`redis-cli`)
+- **MSSQL** (`sqlcmd` via mssql-tools18)
 
-### **Modern CLI Experience**
-- **Zsh with Oh My Zsh** + plugins (autosuggestions, syntax highlighting)
-- **Starship prompt** for beautiful shell
-- **Modern alternatives**: `exa`, `bat`, `ripgrep`, `fd`, `fzf`, `zoxide`
-- **50+ useful aliases** pre-configured
+### PowerShell
+- Cross-platform PowerShell (from Microsoft repo)
 
-### **Development Tools Galore**
-- **Build tools**: cmake, ninja, gcc, clang, llvm
-- **Debugging**: gdb, valgrind, strace, ltrace
-- **Network tools**: nmap, netcat, wireshark, tcpdump
-- **Database clients**: PostgreSQL, MySQL, Redis, SQLite
-- **Testing tools**: k6 load testing, Playwright
-- **Code quality**: SonarScanner, mutation testing
-- **Performance**: profiling, monitoring, benchmarking tools
+### System Utilities
+- htop, tree, less
 
-### **VS Code Integration**
-- **19 pre-installed extensions** including C# Dev Kit, Copilot, Docker
-- **Optimized settings** for .NET development
-- **Port forwarding** for all common development servers
+## Getting Started
 
-## 🚀 **Getting Started**
+### Build
+```bash
+# Build Layer 2 (requires devbench-base:latest)
+docker build -t dotnet-bench:latest -f Dockerfile.layer2 .
 
-### **Prerequisites**
-1. Build Layer 1 (devbench-base) if not already built:
-   ```bash
-   cd ../base-image
-   ./build.sh
-   ```
+# Or use the build script
+./scripts/build-layer2.sh
+```
 
-2. Build Layer 2 (dotnet-bench):
-   ```bash
-   ./scripts/build-layer.sh
-   ```
-
-### **Option 1: VS Code (Recommended)**
+### Open
 1. Open this folder in VS Code
-2. When prompted, click **"Reopen in Container"**
-3. VS Code will automatically open the `/projects` folder (your ~/projects directory)
-4. 🎉 Start coding!
+2. Click **"Reopen in Container"**
+3. Layer 3 builds automatically via `ensure-layer3.sh`
 
-### **Option 2: Manual Start**
+### Verify
 ```bash
-# Start the container
-./setup.sh
-
-# Connect to it
-docker exec -it dotnet_bench zsh
+dotnet --version          # .NET 10 SDK
+dotnet ef --version       # EF Core tools
+dotnet-trace --version    # Diagnostics
+az --version              # Azure CLI
+aws --version             # AWS CLI
+docker --version          # Docker client
+kubectl version --client  # Kubernetes
+helm version              # Helm
+psql --version            # PostgreSQL client
+sqlcmd --version          # MSSQL client
+pwsh --version            # PowerShell
 ```
 
-## 📁 **Working Directory Configuration**
-
-The container automatically mounts and opens your projects folder:
-
-- **Host**: `~/projects` 
-- **Container**: `/projects`
-- **VS Code**: Automatically opens `/projects` on attach
-
-### **Changing the Default Folder**
-
-To work on a specific project by default, update both:
-
-1. **`.env` file**:
-   ```bash
-   WORKING_DIR=/projects/YourProjectName
-   ```
-
-2. **`.devcontainer/devcontainer.json`**:
-   ```json
-   "workspaceFolder": "/projects/YourProjectName",
-   "postAttachCommand": "code /projects/YourProjectName"
-   ```
-
-### **Available Folders**
-- `/projects` - Your actual project files (~/projects)
-- `/workspace` - The workBenches configuration (devBenches/)
-
-## 📦 **What Gets Installed**
-
-### **.NET Global Tools (25+)**
-```bash
-dotnet-ef                    # Entity Framework
-dotnet-aspnet-codegenerator  # ASP.NET scaffolding
-dotnet-stryker              # Mutation testing
-dotnet-reportgenerator      # Code coverage
-dotnet-outdated             # Dependency updates
-GitVersion.Tool             # Semantic versioning
-Microsoft.Tye               # Microservices dev
-dotnet-trace                # Performance profiling
-dotnet-dump                 # Memory analysis
-dotnet-monitor              # Diagnostic monitoring
-PowerShell                  # Cross-platform PS
-# ... and 15 more!
-```
-
-### **Language Runtimes & Package Managers**
-```bash
-.NET 10.0 SDK              # Latest LTS .NET
-Node.js 20.x + npm         # JavaScript ecosystem  
-Python 3.12 + pip          # Python development
-Java 21/17/11 JDKs         # Multi-Java support
-Go                         # Go language
-Rust + Cargo               # Systems programming
-Bun                        # Fast JS runtime
-Deno                       # Modern JS runtime
-```
-
-### **Cloud & DevOps Tools**
-```bash
-Docker + Docker Compose    # Containerization
-Kubernetes (kubectl, helm) # Container orchestration
-Azure CLI + Bicep          # Azure cloud
-Terraform + Pulumi         # Infrastructure as Code
-Dapr CLI                   # Microservices runtime
-GitHub CLI                 # GitHub integration
-```
-
-### **Modern CLI Tools**
-```bash
-exa        # Better ls
-bat        # Better cat with syntax highlighting  
-ripgrep    # Faster grep
-fd         # Better find
-fzf        # Fuzzy finder
-zoxide     # Smarter cd
-starship   # Beautiful prompt
-k6         # Load testing
-hyperfine  # Benchmarking
-tokei      # Code statistics
-just       # Command runner
-```
-
-## 🎯 **Perfect for**
-- **.NET Core/Framework** development
-- **Blazor** applications (Server, WebAssembly, Hybrid)
-- **ASP.NET Core** APIs and web apps
-- **MAUI** cross-platform apps
-- **Microservices** architecture (with Dapr, Docker, K8s)
-- **Cloud development** (Azure, containers, serverless)
-- **Full-stack development** (React, Angular, Vue with .NET backends)
-
-## ⚡ **Pre-configured Aliases**
+## Pre-configured Aliases
 
 ```bash
-# .NET shortcuts
-dn / dnr / dnb / dnt / dnw   # dotnet run/build/test/watch
-dnef                         # dotnet ef
+# .NET
+dn / dnr / dnb / dnt / dnw    # dotnet run/build/test/watch
+dnef / dna / dnrs / dnnew     # dotnet ef/add/restore/new
 
-# Docker & Kubernetes  
-d / dc / k                   # docker/docker-compose/kubectl
-dps / kgp / kgs             # docker ps / kubectl get pods/services
+# Docker
+d / dc / dps / di             # docker / compose / ps / images
 
-# Modern CLI
-ll / la / ls                # exa variants (better ls)
-cat                         # bat (syntax highlighted)
-find / grep                 # fd / ripgrep (faster)
-cd                          # zoxide (smarter)
+# Kubernetes
+k / kgp / kgs / kgd           # kubectl get pods/services/deployments
 ```
 
-## 🌐 **Port Forwarding**
-Auto-forwarded ports: `3000`, `4200`, `5000`, `5001`, `7071`, `8080`
+## Forwarded Ports
 
-## 📁 **Workspace Structure**
-```
-~/workspace/
-├── src/         # Your source code
-├── tests/       # Test projects  
-├── docs/        # Documentation
-├── scripts/     # Build scripts
-├── tools/       # Custom tools
-├── docker/      # Docker files
-├── kubernetes/  # K8s manifests
-└── terraform/   # Infrastructure code
-```
+- `5000` — .NET HTTP
+- `5001` — .NET HTTPS
+- `7071` — Azure Functions
+- `8080` — Dev Server
+- `3000` — Frontend dev
+- `4200` — Angular dev
 
-## 🔧 **Container Specs**
-- **Base**: Ubuntu 24.04 LTS
-- **Size**: ~8GB (it's a monster!)
-- **Build time**: 10-15 minutes first time
-- **Subsequent starts**: <30 seconds
-- **User mapping**: Perfect UID/GID match with host
+## VS Code Extensions
 
-## ⚠️ **System Requirements**
-- **Docker Desktop** with WSL 2 backend
-- **8GB+ RAM** allocated to Docker
-- **20GB+ disk space** for the image
-- **VS Code** with Remote-Containers extension
-
-## 🎉 **Why This Approach?**
-
-1. **Perfect Permission Mapping** - No more `chown` headaches
-2. **Everything Pre-installed** - No waiting for tools during development  
-3. **Consistent Environment** - Same setup across team members
-4. **WSL Optimized** - Built specifically for WSL workflows
-5. **Extensible** - Easy to add more tools to the Dockerfile
-
-This is the container you use when you want **EVERYTHING** and don't want to think about setup ever again! 🚀
+Pre-configured: C# Dev Kit, Blazor WASM Companion, PowerShell, Azure Functions, Docker, Copilot, GitLens, Playwright, REST Client, NuGet Package Manager, and more.

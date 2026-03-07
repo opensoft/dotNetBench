@@ -1,78 +1,108 @@
 {
-	"name": ".NET DevBench Container - The Monster",
-	"dockerComposeFile": "docker-compose.yml",
-	"service": "dot_net_bench",
-	// Workspace folder - points to ~/projects mounted at /projects
-	"workspaceFolder": "/projects",
-	
-	// Mounts are defined in docker-compose.yml
-	// (~/projects -> /projects, devBenches -> /workspace, home dir, etc.)
-	
-	// Container environment variables
-	"containerEnv": {
-		"USERNAME": "${localEnv:USER}",
-		"USER_UID": "${localEnv:UID:-1000}",
-		"USER_GID": "${localEnv:GID:-1000}",
-		"DEBUG": "false"
-	},
-	
-	// Features are now built into the Dockerfile
+    "name": ".NET Development Bench",
+    "initializeCommand": "bash ${localWorkspaceFolder}/../../scripts/ensure-layer3.sh --base dotnet-bench:latest",
+    "image": "dotnet-bench:${localEnv:USER}",
+    "runArgs": [
+        "--privileged"
+    ],
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+                "dotnet.inlayHints.enableInlayHintsForParameters": true,
+                "dotnet.inlayHints.enableInlayHintsForLiteralParameters": true,
+                "dotnet.inlayHints.enableInlayHintsForIndexerParameters": true,
+                "dotnet.inlayHints.enableInlayHintsForObjectCreationParameters": true,
+                "dotnet.inlayHints.enableInlayHintsForOtherParameters": true,
+                "dotnet.inlayHints.suppressInlayHintsForParametersThatDifferOnlyBySuffix": true,
+                "dotnet.inlayHints.suppressInlayHintsForParametersThatMatchMethodIntent": true,
+                "dotnet.inlayHints.suppressInlayHintsForParametersThatMatchArgumentName": true,
+                "dotnet.inlayHints.enableInlayHintsForTypes": true,
+                "dotnet.inlayHints.enableInlayHintsForImplicitVariableTypes": true,
+                "dotnet.inlayHints.enableInlayHintsForLambdaParameterTypes": true,
+                "dotnet.inlayHints.enableInlayHintsForImplicitObjectCreation": true,
+                "omnisharp.enableEditorConfigSupport": true,
+                "omnisharp.enableRoslynAnalyzers": true
+            },
+            "extensions": [
+                "ms-dotnettools.csharp",
+                "ms-dotnettools.csdevkit",
+                "ms-dotnettools.vscode-dotnet-runtime",
+                "ms-dotnettools.blazorwasm-companion",
+                "bradlc.vscode-tailwindcss",
+                "ms-vscode.powershell",
+                "ms-azuretools.vscode-azurefunctions",
+                "ms-azuretools.vscode-docker",
+                "github.copilot",
+                "esbenp.prettier-vscode",
+                "humao.rest-client",
+                "ms-playwright.playwright",
+                "ms-vscode.test-adapter-converter",
+                "formulahendry.dotnet-test-explorer",
+                "jmrog.vscode-nuget-package-manager",
+                "k--kato.docomment",
+                "kreativ-software.csharpextensions",
+                "eamodio.gitlens"
+            ]
+        }
+    },
+    "containerEnv": {
+        "SHELL": "/bin/zsh",
+        "DOCKER_HOST": "unix:///var/run/docker.sock"
+    },
+    "remoteUser": "${localEnv:USER}",
+    "workspaceFolder": "/workspace",
+    "mounts": [
+        "source=dotnetbench-zshhistory,target=/home/${localEnv:USER}/.zsh_history,type=volume",
+        "source=${localEnv:HOME}/projects,target=/workspace/projects,type=bind",
 
-	// Configure tool-specific properties
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"ms-dotnettools.csharp",
-				"ms-dotnettools.csdevkit",
-				"ms-dotnettools.vscode-dotnet-runtime",
-				"ms-dotnettools.blazorwasm-companion",
-				"ms-vscode.vscode-json",
-				"bradlc.vscode-tailwindcss",
-				"ms-vscode.powershell",
-				"ms-azuretools.vscode-azurefunctions",
-				"ms-azuretools.vscode-docker",
-				"GitHub.copilot",
-				"GitHub.copilot-chat",
-				"ms-vscode.remote-containers",
-				"esbenp.prettier-vscode",
-				"humao.rest-client",
-				"ms-playwright.playwright",
-				"ms-vscode-remote.remote-ssh",
-				"ms-vscode.test-adapter-converter",
-				"formulahendry.dotnet-test-explorer",
-				"jmrog.vscode-nuget-package-manager",
-				"k--kato.docomment",
-				"kreativ-software.csharpextensions"
-			],
-			"settings": {
-				"terminal.integrated.defaultProfile.linux": "zsh",
-				"dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
-				"dotnet.inlayHints.enableInlayHintsForParameters": true,
-				"dotnet.inlayHints.enableInlayHintsForLiteralParameters": true,
-				"dotnet.inlayHints.enableInlayHintsForIndexerParameters": true,
-				"dotnet.inlayHints.enableInlayHintsForObjectCreationParameters": true,
-				"dotnet.inlayHints.enableInlayHintsForOtherParameters": true,
-				"dotnet.inlayHints.suppressInlayHintsForParametersThatDifferOnlyBySuffix": true,
-				"dotnet.inlayHints.suppressInlayHintsForParametersThatMatchMethodIntent": true,
-				"dotnet.inlayHints.suppressInlayHintsForParametersThatMatchArgumentName": true,
-				"dotnet.inlayHints.enableInlayHintsForTypes": true,
-				"dotnet.inlayHints.enableInlayHintsForImplicitVariableTypes": true,
-				"dotnet.inlayHints.enableInlayHintsForLambdaParameterTypes": true,
-				"dotnet.inlayHints.enableInlayHintsForImplicitObjectCreation": true,
-				"omnisharp.enableEditorConfigSupport": true,
-				"omnisharp.enableRoslynAnalyzers": true
-			}
-		}
-	},
+        // Shell configurations
+        "source=${localEnv:HOME}/.zshrc,target=/home/${localEnv:USER}/.zshrc,type=bind,readonly",
+        "source=${localEnv:HOME}/.oh-my-zsh,target=/home/${localEnv:USER}/.oh-my-zsh,type=bind,readonly",
+        "source=${localEnv:HOME}/.p10k.zsh,target=/home/${localEnv:USER}/.p10k.zsh,type=bind,readonly",
+        "source=${localEnv:HOME}/.bashrc,target=/home/${localEnv:USER}/.bashrc,type=bind,readonly",
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally
-	"forwardPorts": [5000, 5001, 7071, 8080],
+        // Git configuration
+        "source=${localEnv:HOME}/.gitconfig,target=/home/${localEnv:USER}/.gitconfig,type=bind,readonly",
 
-	// All setup is done in the Dockerfile
+        // SSH keys and configuration
+        "source=${localEnv:HOME}/.ssh,target=/home/${localEnv:USER}/.ssh,type=bind,readonly",
 
-	// Automatically open /projects folder after attaching
-	"postAttachCommand": "code /projects",
+        // GitHub CLI configuration
+        "source=${localEnv:HOME}/.config/gh,target=/home/${localEnv:USER}/.config/gh,type=bind,readonly",
 
-	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root
-	"remoteUser": "${localEnv:USER}"
+        // Docker socket
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+
+        // AI Agent Credentials
+        "source=${localEnv:HOME}/.claude,target=/home/${localEnv:USER}/.claude,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.claude.json,target=/home/${localEnv:USER}/.claude.json,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.codex,target=/home/${localEnv:USER}/.codex,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.gemini,target=/home/${localEnv:USER}/.gemini,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.grok,target=/home/${localEnv:USER}/.grok,type=bind,readonly",
+        "source=${localEnv:HOME}/.copilot-cli,target=/home/${localEnv:USER}/.copilot-cli,type=bind,readonly",
+        // NotebookLM (auth tokens from host)
+        "source=${localEnv:HOME}/.notebooklm,target=/home/${localEnv:USER}/.notebooklm,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.notebooklm-mcp-cli,target=/home/${localEnv:USER}/.notebooklm-mcp-cli,type=bind,consistency=cached"
+    ],
+    "forwardPorts": [5000, 5001, 7071, 8080, 3000, 4200],
+    "portsAttributes": {
+        "5000": {
+            "label": ".NET HTTP",
+            "onAutoForward": "notify"
+        },
+        "5001": {
+            "label": ".NET HTTPS",
+            "onAutoForward": "notify"
+        },
+        "7071": {
+            "label": "Azure Functions",
+            "onAutoForward": "notify"
+        },
+        "8080": {
+            "label": "Dev Server",
+            "onAutoForward": "notify"
+        }
+    }
 }
