@@ -1,10 +1,9 @@
 {
-    "name": ".NET Development Bench",
+    "name": "devBenches / dotNetBench",
     "initializeCommand": "bash ${localWorkspaceFolder}/../../scripts/ensure-layer3.sh --base dotnet-bench:latest",
-    "image": "dotnet-bench:${localEnv:USER}",
-    "runArgs": [
-        "--privileged"
-    ],
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "dotnet-bench",
+    "shutdownAction": "stopCompose",
     "customizations": {
         "vscode": {
             "settings": {
@@ -34,7 +33,6 @@
                 "ms-vscode.powershell",
                 "ms-azuretools.vscode-azurefunctions",
                 "ms-azuretools.vscode-docker",
-                "github.copilot",
                 "esbenp.prettier-vscode",
                 "humao.rest-client",
                 "ms-playwright.playwright",
@@ -43,7 +41,14 @@
                 "jmrog.vscode-nuget-package-manager",
                 "k--kato.docomment",
                 "kreativ-software.csharpextensions",
-                "eamodio.gitlens"
+                "eamodio.gitlens",
+                "github.copilot",
+                "openai.chatgpt",
+                "google.geminicodeassist",
+                "google.gemini-cli-vscode-ide-companion",
+                "d3j.gemini-cli-on-vscode",
+                "Anthropic.claude-code",
+                "AndrePimenta.claude-code-chat"
             ]
         }
     },
@@ -52,6 +57,7 @@
         "DOCKER_HOST": "unix:///var/run/docker.sock"
     },
     "remoteUser": "${localEnv:USER}",
+    "updateRemoteUserUID": false,
     "workspaceFolder": "/workspace",
     "mounts": [
         "source=dotnetbench-zshhistory,target=/home/${localEnv:USER}/.zsh_history,type=volume",

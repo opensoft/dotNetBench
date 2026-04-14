@@ -6,7 +6,7 @@ Full-featured .NET development container using the workBenches layered image sys
 
 ```
 Layer 0: workbench-base:latest     — Ubuntu 24.04, system tools, AI CLIs
-Layer 1: devbench-base:latest      — Python, Node.js, dev tools
+Layer 1: dev-bench-base:latest     — Python, Node.js, dev tools
 Layer 2: dotnet-bench:latest       — .NET SDK, cloud CLIs, DB clients (this image)
 Layer 3: dotnet-bench:{username}   — User account (built automatically)
 Runtime: devcontainer.json mounts  — Credentials, shell config, AI auth
@@ -51,11 +51,14 @@ Runtime: devcontainer.json mounts  — Credentials, shell config, AI auth
 
 ### Build
 ```bash
-# Build Layer 2 (requires devbench-base:latest)
+# Build Layer 2 (requires dev-bench-base:latest)
 docker build -t dotnet-bench:latest -f Dockerfile.layer2 .
 
-# Or use the build script
+# Or use the Layer 2 build script
 ./scripts/build-layer2.sh
+
+# Or build Layer 2 + Layer 3 for your user
+./scripts/build-layer.sh
 ```
 
 ### Open

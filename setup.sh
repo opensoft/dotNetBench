@@ -4,6 +4,7 @@
 export USER_UID=$(id -u)
 export USER_GID=$(id -g) 
 export USER=$(whoami)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "🚀 Starting the .NET DevBench Monster Container"
 echo "   User: $USER (UID: $USER_UID, GID: $USER_GID)"
@@ -11,15 +12,9 @@ echo "   User: $USER (UID: $USER_UID, GID: $USER_GID)"
 # Check if the dotnet-bench image exists
 if ! docker image inspect "dotnet-bench:$USER" >/dev/null 2>&1; then
     echo ""
-    echo "❌ Error: Docker image 'dotnet-bench:$USER' not found!"
+    echo "🔧 Docker image 'dotnet-bench:$USER' not found. Building it now..."
     echo ""
-    echo "You need to build the .NET bench image first:"
-    echo "  ./scripts/build-layer.sh"
-    echo ""
-    echo "This will:"
-    echo "  1. Check that devbench-base:$USER exists (build ../base-image if needed)"
-    echo "  2. Build the .NET-specific layer on top of it"
-    exit 1
+    "$SCRIPT_DIR/scripts/build-layer.sh" --user "$USER" || { echo "❌ Image build failed"; exit 1; }
 fi
 
 # Validate we have the required info
