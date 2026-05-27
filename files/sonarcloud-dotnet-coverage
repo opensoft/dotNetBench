@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+read_sonar_property() {
+    local key="$1"
+    [[ -f sonar-project.properties ]] || return 1
+    awk -F= -v key="$key" '
+        $1 == key {
+            sub(/^[^=]*=/, "")
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "")
+            print
+            exit
+        }
+    ' sonar-project.properties
+}
+
+run_dotnet_sonar() {
+    if command -v dotnet-sonarscanner >/dev/null 2>&1; then
+        dotnet-sonarscanner "$@"
+    else
+        dotnet sonarscanner "$@"
+    fi
+}
+
+SECRETS_FILE="${SONARQUBE_ENV_FILE:-$HOME/.config/sonarqube/sonar.env}"
+if [[ ! -f "$SECRETS_FILE" && -f "$HOME/.config/ledgerlinc/secrets/sonar.env" ]]; then
+    SECRETS_FILE="$HOME/.config/ledgerlinc/secrets/sonar.env"
+fi
+
+if [[ -f "$SECRETS_FILE" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$SECRETS_FILE"
+    set +a
+fi
+
+if [[ -z "${SONAR_TOKEN:-}" && -n "${SONARQUBE_TOKEN:-}" ]]; then
+    export SONAR_TOKEN="$SONARQUBE_TOKEN"
+fi
+
+if [[ -z "${SONAR_HOST_URL:-}" && -n "${SONARQUBE_URL:-}" ]]; then
+    export SONAR_HOST_URL="$SONARQUBE_URL"
+fi
+
+export SONAR_HOST_URL="${SONAR_HOST_URL:-https://sonarcloud.io}"
+
+REPORT="${SONAR_DOTNET_COVERAGE_REPORT:-coverage.xml}"
+PROJECT_KEY="${SONAR_PROJECT_KEY:-$(read_sonar_property sonar.projectKey || true)}"
+ORGANIZATION="${SONAR_ORGANIZATION:-${SONARQUBE_ORG:-$(read_sonar_property sonar.organization || true)}}"
+
+if [[ -z "${SONAR_TOKEN:-}" ]]; then
+    echo "Missing SONAR_TOKEN or SONARQUBE_TOKEN." >&2
+    echo "Put it in $SECRETS_FILE or export it before running this command." >&2
+    exit 2
+fi
+
+if [[ -z "$PROJECT_KEY" ]]; then
+    echo "Missing Sonar project key. Set SONAR_PROJECT_KEY or add sonar.projectKey to sonar-project.properties." >&2
+    exit 2
+fi
+
+if [[ -z "$ORGANIZATION" ]]; then
+    echo "Missing Sonar organization. Set SONAR_ORGANIZATION, SONARQUBE_ORG, or sonar.organization." >&2
+    exit 2
+fi
+
+if ! command -v dotnet-coverage >/dev/null 2>&1; then
+    echo "dotnet-coverage is not on PATH. Rebuild/reopen dotNetBench first." >&2
+    exit 2
+fi
+
+run_dotnet_sonar begin \
+    /k:"$PROJECT_KEY" \
+    /o:"$ORGANIZATION" \
+    /d:sonar.host.url="$SONAR_HOST_URL" \
+    /d:sonar.token="$SONAR_TOKEN" \
+    /d:sonar.cs.vscoveragexml.reportsPaths="$REPORT" \
+    /d:sonar.vbnet.vscoveragexml.reportsPaths="$REPORT" \
+    "$@"
+
+bash -lc "${SONAR_DOTNET_BUILD_COMMAND:-dotnet build --no-incremental}"
+dotnet-coverage collect "${SONAR_DOTNET_TEST_COMMAND:-dotnet test}" -f xml -o "$REPORT"
+
+run_dotnet_sonar end /d:sonar.token="$SONAR_TOKEN"

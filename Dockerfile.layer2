@@ -10,7 +10,7 @@ FROM ${BASE_IMAGE}
 # Container version labels
 LABEL layer="2"
 LABEL layer.name="dotnet-bench"
-LABEL layer.version="2.0.0"
+LABEL layer.version="2.0.1"
 LABEL layer.updated="2026-03-06"
 LABEL layer.description=".NET development tools and SDK (user-agnostic)"
 LABEL bench.type="dotnet"
@@ -78,6 +78,8 @@ RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH Swashbuckle.AspNetCore.Cl
 # Code quality / coverage
 RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-sonarscanner \
     || echo "⚠️  sonarscanner failed, skipping"
+RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-coverage \
+    || echo "⚠️  dotnet-coverage failed, skipping"
 RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH coverlet.console \
     || echo "⚠️  coverlet failed, skipping"
 
@@ -91,6 +93,9 @@ RUN dotnet tool install --tool-path $DOTNET_TOOLS_PATH dotnet-retire \
 
 # Make shared tool dir accessible to all users
 RUN chmod -R a+rX $DOTNET_TOOLS_PATH
+
+COPY files/sonarcloud-dotnet-coverage /usr/local/bin/sonarcloud-dotnet-coverage
+RUN chmod +x /usr/local/bin/sonarcloud-dotnet-coverage
 
 # ========================================
 # .NET WORKLOADS
@@ -191,6 +196,7 @@ RUN echo '' >> /etc/skel/.zshrc && \
     echo 'alias dnw="dotnet watch"' >> /etc/skel/.zshrc && \
     echo 'alias dnc="dotnet clean"' >> /etc/skel/.zshrc && \
     echo 'alias dnp="dotnet publish"' >> /etc/skel/.zshrc && \
+    echo 'alias dn-sonar-coverage="sonarcloud-dotnet-coverage"' >> /etc/skel/.zshrc && \
     echo 'alias dnef="dotnet ef"' >> /etc/skel/.zshrc && \
     echo 'alias dna="dotnet add"' >> /etc/skel/.zshrc && \
     echo 'alias dnrs="dotnet restore"' >> /etc/skel/.zshrc && \

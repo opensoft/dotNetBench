@@ -12,7 +12,7 @@ Layer 3: dotnet-bench:{username}   — User account (built automatically)
 Runtime: devcontainer.json mounts  — Credentials, shell config, AI auth
 ```
 
-## What Layer 2 Installs (v2.0.0)
+## What Layer 2 Installs (v2.0.1)
 
 ### .NET SDK & Runtimes
 - .NET 10 SDK, runtime, ASP.NET Core runtime
@@ -21,7 +21,7 @@ Runtime: devcontainer.json mounts  — Credentials, shell config, AI auth
 ### .NET Global Tools (18+)
 - **EF Core**: dotnet-ef
 - **Diagnostics**: dotnet-trace, dotnet-dump, dotnet-counters, dotnet-monitor
-- **Code quality**: dotnet-sonarscanner, coverlet, dotnet-stryker, dotnet-format
+- **Code quality**: dotnet-sonarscanner, dotnet-coverage, coverlet, dotnet-stryker, dotnet-format
 - **Scaffolding**: dotnet-aspnet-codegenerator, libman
 - **Utilities**: dotnet-outdated, dotnet-retire, dotnet-depends, dotnet-script
 - **Web**: httprepl, Swashbuckle CLI
@@ -71,6 +71,7 @@ docker build -t dotnet-bench:latest -f Dockerfile.layer2 .
 dotnet --version          # .NET 10 SDK
 dotnet ef --version       # EF Core tools
 dotnet-trace --version    # Diagnostics
+dotnet-coverage --version # Coverage collection for SonarCloud
 az --version              # Azure CLI
 aws --version             # AWS CLI
 docker --version          # Docker client
@@ -87,12 +88,40 @@ pwsh --version            # PowerShell
 # .NET
 dn / dnr / dnb / dnt / dnw    # dotnet run/build/test/watch
 dnef / dna / dnrs / dnnew     # dotnet ef/add/restore/new
+dn-sonar-coverage             # dotnet build/test coverage + SonarCloud scan
 
 # Docker
 d / dc / dps / di             # docker / compose / ps / images
 
 # Kubernetes
 k / kgp / kgs / kgd           # kubectl get pods/services/deployments
+```
+
+## SonarCloud Coverage
+
+`sonarcloud-dotnet-coverage` reads `SONARQUBE_TOKEN` from
+`~/.config/sonarqube/sonar.env`. It reads `sonar.projectKey` and
+`sonar.organization` from `sonar-project.properties` unless you set
+`SONAR_PROJECT_KEY` and `SONAR_ORGANIZATION`.
+
+```bash
+sonarcloud-dotnet-coverage
+```
+
+The helper follows Sonar's .NET scanner pattern:
+
+```bash
+dotnet sonarscanner begin ... /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+dotnet build --no-incremental
+dotnet-coverage collect "dotnet test" -f xml -o coverage.xml
+dotnet sonarscanner end ...
+```
+
+Override project-specific commands when needed:
+
+```bash
+SONAR_DOTNET_BUILD_COMMAND="dotnet build MyApp.sln --no-incremental" sonarcloud-dotnet-coverage
+SONAR_DOTNET_TEST_COMMAND="dotnet test tests/MyApp.Tests" sonarcloud-dotnet-coverage
 ```
 
 ## Forwarded Ports
