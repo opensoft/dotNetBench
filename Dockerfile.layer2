@@ -10,7 +10,7 @@ FROM ${BASE_IMAGE}
 # Container version labels
 LABEL layer="2"
 LABEL layer.name="dotnet-bench"
-LABEL layer.version="2.0.1"
+LABEL layer.version="2.0.2"
 LABEL layer.updated="2026-03-06"
 LABEL layer.description=".NET development tools and SDK (user-agnostic)"
 LABEL bench.type="dotnet"
@@ -19,6 +19,7 @@ USER root
 
 # Shared tool install path — accessible to any Layer 3 user
 ENV DOTNET_TOOLS_PATH=/usr/local/share/dotnet-tools
+ARG KUBERNETES_APT_MINOR=1.36
 RUN mkdir -p $DOTNET_TOOLS_PATH
 
 # ========================================
@@ -139,9 +140,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # kubectl
-RUN curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key \
+RUN curl -fsSL https://pkgs.k8s.io/core:/stable:/v${KUBERNETES_APT_MINOR}/deb/Release.key \
        | gpg --batch --yes --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg \
-    && echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /" \
+    && echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${KUBERNETES_APT_MINOR}/deb/ /" \
        > /etc/apt/sources.list.d/kubernetes.list \
     && apt-get update && apt-get install -y kubectl \
     && rm -rf /var/lib/apt/lists/*
