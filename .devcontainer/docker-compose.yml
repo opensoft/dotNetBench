@@ -13,3 +13,11 @@ services:
     privileged: true
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
+    networks:
+      - dotnet-bench-net
+
+networks:
+  dotnet-bench-net:
+    name: dotnet-bench_default
+    driver_opts:
+      com.docker.network.driver.mtu: "1400"
