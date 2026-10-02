@@ -54,13 +54,14 @@
     },
     "containerEnv": {
         "SHELL": "/bin/zsh",
+        "HISTFILE": "/home/${localEnv:USER}/.workbenches-history/.zsh_history",
         "DOCKER_HOST": "unix:///var/run/docker.sock"
     },
     "remoteUser": "${localEnv:USER}",
     "updateRemoteUserUID": false,
     "workspaceFolder": "/workspace",
     "mounts": [
-        "source=dotnetbench-zshhistory,target=/home/${localEnv:USER}/.zsh_history,type=volume",
+        "source=dotnetbench-zshhistory,target=/home/${localEnv:USER}/.workbenches-history,type=volume",
         "source=${localEnv:HOME}/projects,target=/workspace/projects,type=bind",
 
         // Shell configurations
