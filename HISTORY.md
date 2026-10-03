@@ -6,7 +6,7 @@ The default Docker engine volume is `dev-benches_dotnetbench-zshhistory`, matchi
 Before recreating a container on another installation, inspect its existing mounts:
 
 ```sh
-docker inspect dot-net-bench --format '{{range .Mounts}}{{println .Name .Destination}}{{end}}'
+docker inspect dotnet-bench --format '{{range .Mounts}}{{println .Name .Destination}}{{end}}'
 docker volume ls
 ```
 
@@ -23,4 +23,3 @@ file before switching. Do not delete the old volume or run Compose with `down -v
 
 The startup command repairs ownership for the image's non-root account. Recreating a
 container is a separate activation step; these source changes do not restart a live bench.
-
