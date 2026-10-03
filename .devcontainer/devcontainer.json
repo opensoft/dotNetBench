@@ -60,7 +60,6 @@
     "updateRemoteUserUID": false,
     "workspaceFolder": "/workspace",
     "mounts": [
-        "source=dotnetbench-zshhistory,target=/home/${localEnv:USER}/.zsh_history,type=volume",
         "source=${localEnv:HOME}/projects,target=/workspace/projects,type=bind",
 
         // Shell configurations

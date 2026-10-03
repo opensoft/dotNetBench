@@ -8,13 +8,21 @@ services:
     container_name: dotnet-bench
     env_file:
       - ../.env
-    command: sleep infinity
+    command: ["/bin/bash", "-c", 'sudo install -d -m 0700 -o "$$(id -u)" -g "$$(id -g)" "$$HOME/.workbenches-history" && if [ -f "$$HOME/.workbenches-history/.zsh_history" ]; then sudo chown "$$(id -u):$$(id -g)" "$$HOME/.workbenches-history/.zsh_history"; fi && exec sleep infinity']
+    volumes:
+      - dotnetbench-zshhistory:/home/${USER:-brett}/.workbenches-history
     working_dir: ${WORKING_DIR:-/workspace}
     privileged: true
     environment:
+      - HISTFILE=/home/${USER:-brett}/.workbenches-history/.zsh_history
       - DOCKER_HOST=unix:///var/run/docker.sock
     networks:
       - dotnet-bench-net
+
+volumes:
+  dotnetbench-zshhistory:
+    # Retain the existing Compose volume; override for a legacy engine name.
+    name: ${WORKBENCH_HISTORY_VOLUME:-dev-benches_dotnetbench-zshhistory}
 
 networks:
   dotnet-bench-net:
