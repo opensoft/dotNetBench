@@ -4,6 +4,7 @@ name: dev-benches
 
 services:
   dotnet-bench:
+    init: true
     image: dotnet-bench:${USER:-brett}
     container_name: dotnet-bench
     env_file:
